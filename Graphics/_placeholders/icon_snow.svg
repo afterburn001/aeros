@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- placeholder: icon_snow -->
+  <rect x="4" y="4" width="120" height="120" rx="22" fill="#cfe3f5" stroke="#fff" stroke-opacity="0.6" stroke-width="3" stroke-dasharray="8 6"/>
+  <text x="64" y="70" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#fff">SNOW</text>
+</svg>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>Aeros</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Backdrop: chosen by season + day/night + sky (see graphics-slots.js) -->
+  <img id="backdrop" class="backdrop" alt="">
+  <div class="backdrop-shade"></div>
+
+  <div class="app">
+    <!-- EXPERIMENT: wordmark strip (config SHOW_WORDMARK). Also the window's drag handle. -->
+    <div id="wordmark-strip" class="wordmark-strip"><img id="wordmark" alt="" hidden></div>
+
+    <header class="topbar">
+      <div class="search" id="search">
+        <img class="ui-icon" data-ui="search" alt="">
+        <input id="search-input" type="text" placeholder="Search any US city" autocomplete="off" spellcheck="false">
+        <button id="recents-btn" class="icon-btn small" title="Recent cities">&#9662;</button>
+        <div id="dropdown" class="dropdown" hidden></div>
+      </div>
+      <div class="unit-toggle" id="unit-toggle">
+        <button data-unit="F">°F</button><button data-unit="C">°C</button>
+      </div>
+      <button id="settings-btn" class="icon-btn" title="Settings"><img class="ui-icon" data-ui="settings" alt="Settings"></button>
+      <button id="close-btn" class="icon-btn" title="Hide to tray"><img class="ui-icon" data-ui="close" alt="Close"></button>
+    </header>
+
+    <div id="status" class="status" hidden></div>
+
+    <main id="content" class="content" hidden>
+      <section class="place">
+        <h1 id="place-name"></h1>
+        <img id="home-badge" class="ui-icon badge" data-ui="home" alt="Home" title="Home city">
+        <span id="updated" class="muted"></span>
+      </section>
+
+      <div id="alerts"></div>
+
+      <section class="card today">
+        <div class="today-main">
+          <img id="today-icon" class="wx-icon big" alt="">
+          <div>
+            <div id="today-temp" class="temp-big"></div>
+            <div id="today-cond" class="cond"></div>
+            <div id="today-hilo" class="muted"></div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><img class="ui-icon" data-ui="wind" alt=""><span class="label">Wind</span><span id="stat-wind"></span></div>
+          <div class="stat"><img class="ui-icon" data-ui="humidity" alt=""><span class="label">Humidity</span><span id="stat-humidity"></span></div>
+          <div class="stat"><img class="ui-icon" data-ui="sunrise" alt=""><span class="label">Sunrise</span><span id="stat-sunrise"></span></div>
+          <div class="stat"><img class="ui-icon" data-ui="sunset" alt=""><span class="label">Sunset</span><span id="stat-sunset"></span></div>
+        </div>
+      </section>
+
+      <section id="next-days" class="next-days"></section>
+
+      <button id="ten-day-toggle" class="wide-btn">Show 10-day forecast &#9662;</button>
+      <section id="ten-day" class="card ten-day" hidden></section>
+
+      <section class="card">
+        <h2>Hourly</h2>
+        <div id="hourly" class="hourly"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a href="#" id="footer-link">Graphics generated in Afterburn AI</a>
+      <span id="slot-debug" class="slot-debug" title="Backdrop slot in use (phase 1 helper)"></span>
+    </footer>
+  </div>
+
+  <!-- Click-outside layer: closes settings. -->
+  <div id="settings-scrim" class="settings-scrim" hidden></div>
+  <aside id="settings-panel" class="settings-panel" hidden>
+    <div class="settings-head">
+      <h2>Settings</h2>
+      <button id="settings-close" class="icon-btn" title="Close"><img class="ui-icon" data-ui="close" alt="Close"></button>
+    </div>
+    <div id="skin-setting" class="setting" hidden>
+      <label for="skin-select">Skin</label>
+      <select id="skin-select"></select>
+      <p class="muted hint">Live weather picks the skin that matches current conditions and time of day.
+        Pick a skin to keep it showing instead.</p>
+    </div>
+  </aside>
+
+  <script src="graphics-slots.js"></script>
+  <script src="skin-match.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

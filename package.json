@@ -1,0 +1,76 @@
+{
+  "name": "aeros",
+  "productName": "Aeros",
+  "version": "1.0.0",
+  "description": "Aeros: tray weather app for US cities (Open-Meteo + NWS alerts).",
+  "author": "Afterburn AI",
+  "homepage": "https://afterburnaistudio.com/",
+  "main": "src/main/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "check": "node tools/check.js",
+    "smoke": "node tools/smoke.js",
+    "smoke:packaged": "node tools/smoke.js --packaged",
+    "placeholders": "node tools/make-placeholders.js",
+    "dist": "node tools/build-installer.js"
+  },
+  "devDependencies": {
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.afterburn.aeros",
+    "productName": "Aeros",
+    "copyright": "Copyright © 2026 Afterburn AI",
+    "electronDist": "node_modules/electron/dist",
+    "npmRebuild": false,
+    "publish": null,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "Graphics",
+        "to": "Graphics",
+        "filter": [
+          "**/*",
+          "!_cache/**",
+          "!**/*.txt",
+          "!SLOTS.md",
+          "!Aeros wordmark.png",
+          "!Aeros.png",
+          "!aeros_A_beveled.png",
+          "!aeros_A_glassy.png"
+        ]
+      },
+      {
+        "from": "icon_glassy.ico",
+        "to": "icon_glassy.ico"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon_glassy.ico",
+      "legalTrademarks": "Afterburn AI"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Aeros",
+      "uninstallDisplayName": "Aeros",
+      "installerIcon": "icon_glassy.ico",
+      "uninstallerIcon": "icon_glassy.ico",
+      "artifactName": "Aeros Setup ${version}.${ext}",
+      "include": "build/installer.nsh"
+    }
+  }
+}

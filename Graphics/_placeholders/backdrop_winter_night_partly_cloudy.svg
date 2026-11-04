@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="960" viewBox="0 0 540 960">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c3151"/><stop offset="1" stop-color="#525e73"/></linearGradient></defs>
+  <rect width="540" height="960" fill="url(#g)"/>
+  <rect y="930" width="540" height="30" fill="#d8ecff" fill-opacity="0.8"/>
+  <text x="270" y="951" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#000" fill-opacity="0.7">PLACEHOLDER · winter</text>
+  <text x="270" y="150" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700" fill="#ffffff" fill-opacity="0.35">WINTER · NIGHT · PARTLY CLOUDY</text>
+  <text x="270" y="180" text-anchor="middle" font-family="Consolas, monospace" font-size="18" fill="#ffffff" fill-opacity="0.35">backdrop_winter_night_partly_cloudy</text>
+  <text x="270" y="420" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700" fill="#ffffff" fill-opacity="0.35">WINTER · NIGHT · PARTLY CLOUDY</text>
+  <text x="270" y="450" text-anchor="middle" font-family="Consolas, monospace" font-size="18" fill="#ffffff" fill-opacity="0.35">backdrop_winter_night_partly_cloudy</text>
+  <text x="270" y="690" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700" fill="#ffffff" fill-opacity="0.35">WINTER · NIGHT · PARTLY CLOUDY</text>
+  <text x="270" y="720" text-anchor="middle" font-family="Consolas, monospace" font-size="18" fill="#ffffff" fill-opacity="0.35">backdrop_winter_night_partly_cloudy</text>
+  <text x="270" y="900" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="30" font-weight="700" fill="#ffffff" fill-opacity="0.35">WINTER · NIGHT · PARTLY CLOUDY</text>
+  <text x="270" y="930" text-anchor="middle" font-family="Consolas, monospace" font-size="18" fill="#ffffff" fill-opacity="0.35">backdrop_winter_night_partly_cloudy</text>
+</svg>
