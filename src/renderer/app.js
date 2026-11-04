@@ -499,6 +499,8 @@ function wireEvents() {
     applyBackdrop(); // swaps live, no restart
   });
   $('close-btn').addEventListener('click', () => api.hideWindow());
+  $('update-check').addEventListener('click', () => api.checkForUpdates());
+  api.on('updates:status', (text) => { $('update-status').textContent = text; });
 
   $('footer-link').addEventListener('click', (e) => {
     e.preventDefault();
@@ -517,6 +519,7 @@ function wireEvents() {
 async function boot() {
   wireEvents();
   [state.settings, state.config] = await Promise.all([api.getSettings(), api.getConfig()]);
+  $('update-status').textContent = state.config.versionLine;
   document.documentElement.style.setProperty('--wordmark-scale', state.config.wordmarkScale);
   document.documentElement.style.setProperty('--scrim', state.config.panelScrimOpacity);
   await reloadGraphics();

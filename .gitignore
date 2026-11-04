@@ -9,6 +9,7 @@ Graphics/_cache/
 # Test output (screenshots and settings include the tester's location)
 .smoke/
 .smoke-*/
+.update-test/
 
 # Private notes: names other projects
 CLAUDE.md

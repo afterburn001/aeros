@@ -9,9 +9,13 @@ const iconsMap = require('../icons-map');
 const store = require('./store');
 const weatherApi = require('./weather-api');
 const icons = require('./icons');
+const updates = require('./updates');
 
 // Smoke-test mode (tools/smoke.js): render, save screenshots to this folder, quit.
 const SMOKE_DIR = process.env.WEATHER_SMOKE_DIR || null;
+// Update test mode (tools/test-updates.js): run the real update check on a built copy, then quit.
+const UPDATE_TEST = !!(SMOKE_DIR && process.env.WEATHER_UPDATE_TEST);
+const updatePopups = [];
 // Launched by Windows at login -> stay in the tray.
 const START_HIDDEN = process.argv.includes('--hidden') || app.getLoginItemSettings().wasOpenedAtLogin;
 
@@ -48,6 +52,21 @@ function init() {
   createTray();
   createWindow();
   watchGraphics();
+
+  updates.init({
+    getWindow: () => win,
+    iconPath: appIconPath,
+    onStatus: (text) => {
+      if (SMOKE_DIR) console.log(`[smoke] update status: ${text}`);
+      if (win) win.webContents.send('updates:status', text);
+    },
+    askOverride: UPDATE_TEST ? async (version) => {
+      updatePopups.push(version);
+      console.log(`[smoke] update popup would show: ${version}`);
+      return false; // same as clicking "Later"
+    } : null,
+  });
+  if (!SMOKE_DIR) setTimeout(updates.checkSilently, 5000); // let the app settle first
 }
 
 // ---------- Graphics ----------
@@ -232,7 +251,7 @@ function createWindow() {
 
   // Popup behavior: clicking anywhere else tucks it back into the tray.
   win.on('blur', () => {
-    if (SMOKE_DIR || win.webContents.isDevToolsOpened()) return;
+    if (SMOKE_DIR || win.webContents.isDevToolsOpened() || updates.popupOpen()) return;
     win.hide();
     lastBlurHide = Date.now();
   });
@@ -313,12 +332,37 @@ function createTray() {
 
 // ---------- Smoke test ----------
 
+// The launch check, then the real Settings button. Popups are recorded instead of shown.
+async function testUpdates() {
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const settled = async () => {
+    for (let i = 0; i < 300 && updates.phase() !== 'idle' && updates.phase() !== 'ready'; i++) await wait(1000);
+  };
+  const line = () => win.webContents.executeJavaScript("document.getElementById('update-status').textContent");
+  console.log(`[smoke] settings line before: ${await line()}`);
+  updates.checkSilently();
+  await wait(200);
+  await settled();
+  console.log(`[smoke] after launch check: phase=${updates.phase()} popups=[${updatePopups}] settings line: ${await line()}`);
+  await win.webContents.executeJavaScript("document.getElementById('update-check').click(); true");
+  await wait(200);
+  await settled();
+  await wait(500);
+  console.log(`[smoke] after Settings button: phase=${updates.phase()} popups=[${updatePopups}] settings line: ${await line()}`);
+}
+
 let smokeDone = false;
 async function takeSmokeShots(reason) {
   if (!SMOKE_DIR || smokeDone) return;
   smokeDone = true;
   console.log(`[smoke] capturing (${reason})`);
   console.log(`[smoke] packaged=${app.isPackaged} version=${app.getVersion()} name=${app.getName()} graphics=${graphicsDir()} icon=${fs.existsSync(appIconPath())}`);
+  if (UPDATE_TEST) {
+    await testUpdates();
+    quitting = true;
+    app.quit();
+    return;
+  }
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   const shot = async (name) => {
     const img = await win.webContents.capturePage();
@@ -340,6 +384,12 @@ async function takeSmokeShots(reason) {
       "document.body.click(); document.getElementById('settings-btn').click(); true");
     await wait(400);
     await shot('4-settings.png');
+    // Updates: the version line shows, and the dev app says plainly that it can't update.
+    console.log(`[smoke] settings version line: ${await win.webContents.executeJavaScript("document.getElementById('update-status').textContent")}`);
+    if (!app.isPackaged) {
+      await win.webContents.executeJavaScript("document.getElementById('update-check').click(); true");
+      await wait(200);
+    }
     // Settings must close three ways: the X, a click outside the panel, and Esc.
     const settingsCheck = (how) => win.webContents.executeJavaScript(`(() => {
       const panel = document.getElementById('settings-panel');
@@ -511,6 +561,7 @@ function registerIpc() {
     useSkin: config.USE_SKIN,
     skinsMap,
     iconsMap,
+    versionLine: updates.versionLine(),
     showWordmark: config.SHOW_WORDMARK,
     wordmarkFile: config.WORDMARK_FILE.toLowerCase(),
     wordmarkScale: config.WORDMARK_SCALE,
@@ -527,7 +578,8 @@ function registerIpc() {
     if (dataUrl && config.TRAY_MODE === 'temp') tray.setImage(nativeImage.createFromDataURL(dataUrl));
     if (tooltip) tray.setToolTip(tooltip);
   });
-  ipcMain.on('app:open-footer-link', () => shell.openExternal(config.FOOTER_URL));
+  ipcMain.on('updates:check', () => updates.checkManually());
+  ipcMain.on('app:open-footer-link',() => shell.openExternal(config.FOOTER_URL));
   ipcMain.on('window:hide', () => win && win.hide());
   ipcMain.on('app:rendered', () => takeSmokeShots('rendered'));
 }
