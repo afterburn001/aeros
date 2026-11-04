@@ -29,21 +29,30 @@ function storedToken() {
   return token;
 }
 
-async function releaseAssets(token) {
-  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${tag}`, {
+async function github(token, method, route, body) {
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}${route}`, {
+    method,
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'User-Agent': 'aeros-release' },
+    body: body && JSON.stringify(body),
   });
-  if (res.status === 404) return null;
-  if (!res.ok) stop(`GitHub answered HTTP ${res.status}.`);
-  return (await res.json()).assets.map((a) => a.name);
+  if (!res.ok) stop(`GitHub answered HTTP ${res.status} for ${method} ${route}.\n${await res.text()}`);
+  return res.json();
 }
+
+// The list includes drafts, which looking up by tag doesn't.
+async function findRelease(token) {
+  const releases = await github(token, 'GET', '/releases?per_page=100');
+  return releases.find((r) => r.tag_name === tag) || null;
+}
+
+const hasUpdateFeed = (release) => release.assets.some((a) => a.name === 'latest.yml');
 
 (async () => {
   const token = storedToken();
 
   step(`Releasing ${pkg.version}`);
-  const existing = await releaseAssets(token);
-  if (existing && existing.includes('latest.yml')) {
+  const existing = await findRelease(token);
+  if (existing && !existing.draft && hasUpdateFeed(existing)) {
     stop(`${tag} is already published. Bump "version" in package.json first.`);
   }
 
@@ -68,17 +77,28 @@ async function releaseAssets(token) {
     stop(`could not push to GitHub.\n${err.stderr || err.message}`);
   }
 
-  step('Building and publishing');
+  // Upload into a draft, then publish it, so installed copies can never see a half-uploaded release.
+  // The draft has to exist first: the builder's parallel uploads each try to create a missing release.
+  step('Preparing a draft release');
+  const fields = { tag_name: tag, name: pkg.version, target_commitish: git('rev-parse', 'HEAD'), draft: true };
+  const draft = existing
+    ? await github(token, 'PATCH', `/releases/${existing.id}`, fields)
+    : await github(token, 'POST', '/releases', fields);
+
+  step('Building and uploading');
   process.env.ELECTRON_BUILDER_CACHE = path.join(ROOT, '.build-cache');
   process.env.GH_TOKEN = token;
   await require('electron-builder').build({ win: ['nsis'], publish: 'always' });
 
-  step('Confirming the release');
-  const assets = (await releaseAssets(token)) || [];
-  if (!assets.includes('latest.yml') || !assets.some((a) => a.endsWith('.exe'))) {
-    stop(`the upload looks incomplete (${assets.join(', ') || 'no files'}). Run npm run release again.`);
+  step('Publishing the release');
+  const uploaded = await github(token, 'GET', `/releases/${draft.id}`);
+  const names = uploaded.assets.map((a) => a.name);
+  if (!hasUpdateFeed(uploaded) || !names.some((n) => n.endsWith('.exe'))) {
+    stop(`the upload looks incomplete (${names.join(', ') || 'no files'}). Run npm run release again.`);
   }
+  await github(token, 'PATCH', `/releases/${draft.id}`, { draft: false, make_latest: 'true' });
+
   console.log(`\nPublished: https://github.com/${owner}/${repo}/releases/tag/${tag}`);
-  console.log(`Files: ${assets.join(', ')}`);
+  console.log(`Files: ${names.join(', ')}`);
   console.log('Installed copies will offer this update on their next launch.');
 })().catch((err) => stop(err.message));
